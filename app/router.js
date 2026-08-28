@@ -53,8 +53,8 @@ function parseHash() {
 function navLinks() {
   return [
     { route: 'home', label: 'Home', icon: 'home' },
-    { route: 'explore', label: 'Explore', icon: 'explore' },
-    { route: 'messages', label: 'Messages', icon: 'chat' },
+    { route: 'explore', label: 'Discover', icon: 'explore' },
+    { route: 'requests', label: 'Requests', icon: 'bolt' },
     { route: 'activity', label: 'Activity', icon: 'bell' },
     { route: 'profile', label: 'My District', icon: 'user' },
   ];
@@ -136,6 +136,7 @@ District.openCreateModal = function () {
   function showMenu() {
     host.innerHTML = '';
     var createOptions = [
+      { title: 'Post a Request for Help', desc: 'Broadcast hyper-local demand for repair, design, or service', icon: 'bolt', type: 'request', action: function() { host.innerHTML = ''; District.openPostRequestModal(); } },
       { title: 'Create an Event', desc: 'Host a workshop, tournament, meetup, or gathering', icon: 'calendar', type: 'event', action: showEventForm },
       { title: 'Post an Opportunity', desc: 'Post a paid gig, student job, or collaboration', icon: 'briefcase', type: 'opportunity', action: showOpportunityForm },
       { title: 'Publish Official Notice', desc: 'Issue an announcement with verified jurisdiction', icon: 'shield', type: 'notice', action: showNoticeForm },
@@ -497,7 +498,7 @@ District.render = function () {
 
   // Canonical entity routes
   if (route.name === 'business' || route.name === 'place' || route.name === 'org' ||
-      route.name === 'event' || route.name === 'opportunity' || route.name === 'person' || route.name === 'notice') {
+      route.name === 'event' || route.name === 'opportunity' || route.name === 'person' || route.name === 'notice' || route.name === 'request') {
     if (District.screens.entity) {
       main.appendChild(District.screens.entity(route.name, route.params[0]));
     }

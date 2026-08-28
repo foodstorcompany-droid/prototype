@@ -1,10 +1,10 @@
-// EXPLORE — Universal Discovery Engine
-// 3 Perspectives on a Place: MAP | LIST | DISTRICT
-// Filtering across Businesses, Places, Events, Organisations, Opportunities, People, Services, Products.
+// DISCOVER MELLANBY — Structured Discovery & Spatial Geography Engine
+// 4 Pillars: People | Things to do | Things to get | Places
+// Geography: 200m | 500m | 1km Spatial Radius Filter
 window.District = window.District || {};
 District.screens = District.screens || {};
 
-District.exploreState = { perspective: 'map', filter: 'Everything', selectedEntityId: null };
+District.exploreState = { perspective: 'list', filter: 'Everything', selectedEntityId: null, radius: '500m' };
 
 District.screens.explore = function (params) {
   var el = District.el, icon = District.icon;
@@ -22,49 +22,52 @@ District.screens.explore = function (params) {
   var opps = District.getOpportunities(d.id);
   var people = District.getPeople(d.id);
 
-  // Compile unified entity collection
+  // Compile unified entity collection with 4 Discovery Pillars
   var allEntities = [];
+
+  // Pillar 1: People
+  people.forEach(function (pe) {
+    allEntities.push({ id: pe.id, name: pe.name, category: pe.role, pillar: 'People', type: 'person', tag: pe.trustLevel || 'Verified Resident', pinType: 'pin-business', href: '#/person/' + pe.id, image: pe.image });
+  });
+
+  // Pillar 2: Things to do
+  events.forEach(function (ev) {
+    allEntities.push({ id: ev.id, name: ev.title, category: ev.category + ' Event', pillar: 'Things to do', type: 'event', tag: ev.date, pinType: 'pin-event', href: '#/event/' + ev.id, image: ev.image });
+  });
+  opps.forEach(function (op) {
+    allEntities.push({ id: op.id, name: op.title, category: 'Opportunity', pillar: 'Things to do', type: 'opportunity', tag: op.compensation, pinType: 'pin-org', href: '#/opportunity/' + op.id });
+  });
+
+  // Pillar 3: Things to get
   businesses.forEach(function (b) {
-    allEntities.push({ id: b.id, name: b.name, category: b.category, type: 'business', tag: b.openStatus || 'Business', pinType: 'pin-business', href: '#/business/' + b.id, rating: b.rating, image: b.image });
+    allEntities.push({ id: b.id, name: b.name, category: b.category, pillar: 'Things to get', type: 'business', tag: b.openStatus || 'Open', pinType: 'pin-business', href: '#/business/' + b.id, rating: b.rating, image: b.image });
     (b.services || []).forEach(function (s) {
-      allEntities.push({ id: b.id + '-' + s.id, name: s.name, category: b.name + ' · Service', type: 'service', tag: s.price, pinType: 'pin-business', href: '#/business/' + b.id, image: b.image });
+      allEntities.push({ id: b.id + '-' + s.id, name: s.name, category: b.name + ' · Service', pillar: 'Things to get', type: 'service', tag: s.price, pinType: 'pin-business', href: '#/business/' + b.id, image: b.image });
     });
     (b.products || []).forEach(function (pr) {
-      allEntities.push({ id: b.id + '-' + pr.id, name: pr.name, category: b.name + ' · Product', type: 'product', tag: pr.price, pinType: 'pin-business', href: '#/business/' + b.id, image: b.image });
+      allEntities.push({ id: b.id + '-' + pr.id, name: pr.name, category: b.name + ' · Product', pillar: 'Things to get', type: 'product', tag: pr.price, pinType: 'pin-business', href: '#/business/' + b.id, image: b.image });
     });
   });
 
+  // Pillar 4: Places
   places.forEach(function (pl) {
-    allEntities.push({ id: pl.id, name: pl.name, category: pl.type, type: 'place', tag: pl.liveStatus ? pl.liveStatus.tag : 'Place', pinType: 'pin-place', href: '#/place/' + pl.id, image: pl.image });
+    allEntities.push({ id: pl.id, name: pl.name, category: pl.type, pillar: 'Places', type: 'place', tag: pl.liveStatus ? pl.liveStatus.tag : 'Open Space', pinType: 'pin-place', href: '#/place/' + pl.id, image: pl.image });
   });
-
-  events.forEach(function (ev) {
-    allEntities.push({ id: ev.id, name: ev.title, category: ev.category, type: 'event', tag: ev.date, pinType: 'pin-event', href: '#/event/' + ev.id, image: ev.image });
-  });
-
   orgs.forEach(function (og) {
-    allEntities.push({ id: og.id, name: og.name, category: og.category, type: 'organization', tag: og.authorityTier, pinType: 'pin-org', href: '#/org/' + og.id, image: og.image });
+    allEntities.push({ id: og.id, name: og.name, category: og.category, pillar: 'Places', type: 'organization', tag: og.authorityTier || 'Community', pinType: 'pin-org', href: '#/org/' + og.id, image: og.image });
   });
 
-  opps.forEach(function (op) {
-    allEntities.push({ id: op.id, name: op.title, category: 'Opportunity', type: 'opportunity', tag: op.compensation, pinType: 'pin-org', href: '#/opportunity/' + op.id });
-  });
-
-  people.forEach(function (pe) {
-    allEntities.push({ id: pe.id, name: pe.name, category: pe.role, type: 'person', tag: pe.trustLevel, pinType: 'pin-business', href: '#/person/' + pe.id, image: pe.image });
-  });
-
-  // Filter items
+  // Filter items based on active pill
   var filteredEntities = allEntities.filter(function (ent) {
-    if (es.filter === 'Everything') return ent.type !== 'service' && ent.type !== 'product'; // Keep primary objects in everything
+    if (es.filter === 'Everything') return ent.type !== 'service' && ent.type !== 'product';
+    if (es.filter === 'People') return ent.pillar === 'People';
+    if (es.filter === 'Things to do') return ent.pillar === 'Things to do';
+    if (es.filter === 'Things to get') return ent.pillar === 'Things to get';
+    if (es.filter === 'Places') return ent.pillar === 'Places';
     if (es.filter === 'Businesses') return ent.type === 'business';
-    if (es.filter === 'Places') return ent.type === 'place';
-    if (es.filter === 'Events') return ent.type === 'event';
-    if (es.filter === 'Organisations') return ent.type === 'organization';
-    if (es.filter === 'Opportunities') return ent.type === 'opportunity';
-    if (es.filter === 'People') return ent.type === 'person';
     if (es.filter === 'Services') return ent.type === 'service';
     if (es.filter === 'Products') return ent.type === 'product';
+    if (es.filter === 'Events') return ent.type === 'event';
     return true;
   });
 
@@ -76,31 +79,33 @@ District.screens.explore = function (params) {
 
   var shell = el('div', { class: 'explore-shell mode-' + es.perspective }, []);
 
-  // =========================================================================
-  // CONTROLS & FILTER BAR
-  // =========================================================================
-  var filterOptions = ['Everything', 'Businesses', 'Places', 'Events', 'Organisations', 'Services', 'Products', 'Opportunities', 'People'];
+  // Filter Options: 4 Core Pillars + Everything
+  var filterOptions = ['Everything', 'People', 'Things to do', 'Things to get', 'Places', 'Businesses', 'Services'];
 
   var controls = el('div', { class: 'explore-controls' }, [
     el('div', { class: 'row-top' }, [
       el('div', { class: 'search-mini' }, [
         icon('search', 'icon-sm'),
-        el('input', { placeholder: 'Explore ' + d.name + ' (' + filteredEntities.length + ' results)…' }, []),
+        el('input', { placeholder: 'Discover ' + d.name + ' (' + filteredEntities.length + ' results)…' }, []),
       ]),
+      // Spatial Radius Selector
+      el('div', { class: 'radius-selector' }, ['200m', '500m', '1km'].map(function (rad) {
+        var on = es.radius === rad;
+        return el('button', {
+          class: 'chip-radius' + (on ? ' active' : ''),
+          onclick: function () { es.radius = rad; District.toast('Search radius set to ' + rad); District.render(); },
+        }, [rad]);
+      })),
       // 3 Perspective Toggle
       el('div', { class: 'explore-perspectives' }, [
-        el('button', {
-          class: es.perspective === 'map' ? 'active' : '',
-          onclick: function () { es.perspective = 'map'; District.render(); },
-        }, [icon('map', 'icon-sm'), 'Map']),
         el('button', {
           class: es.perspective === 'list' ? 'active' : '',
           onclick: function () { es.perspective = 'list'; District.render(); },
         }, [icon('list', 'icon-sm'), 'List']),
         el('button', {
-          class: es.perspective === 'district' ? 'active' : '',
-          onclick: function () { es.perspective = 'district'; District.render(); },
-        }, [icon('grid', 'icon-sm'), 'Feed']),
+          class: es.perspective === 'map' ? 'active' : '',
+          onclick: function () { es.perspective = 'map'; District.render(); },
+        }, [icon('map', 'icon-sm'), 'Map']),
       ]),
     ]),
     el('div', { class: 'category-pills' }, filterOptions.map(function (f) {
@@ -112,63 +117,41 @@ District.screens.explore = function (params) {
     })),
   ]);
 
-  // =========================================================================
-  // PERSPECTIVE 1 & 2: LIST / SPLIT PANE
-  // =========================================================================
+  // List Pane
   var listPane = el('div', { class: 'explore-list-pane' }, [controls]);
 
-  if (es.perspective === 'district') {
-    // District Feed view
-    var feedItems = District.data.activity.filter(function (a) { return a.districtId === d.id; });
-    if (!feedItems.length) feedItems = District.data.activity.slice(0, 4);
+  var list = el('div', { style: 'margin-top:8px;' }, filteredEntities.map(function (ent) {
+    var isSel = es.selectedEntityId === ent.id;
+    var fig = ent.image
+      ? el('div', { class: 'fig d-figure' }, [el('img', { src: ent.image, alt: ent.name, style: 'width:100%;height:100%;object-fit:cover;' })])
+      : el('div', { class: 'fig d-figure d-placeholder', 'data-label': ent.type.slice(0, 3).toUpperCase(), 'data-coord': '' }, []);
 
-    var feedBody = el('div', { style: 'margin-top:14px; display:flex; flex-direction:column; gap:10px;' }, feedItems.map(function (fi) {
-      return el('div', { class: 'card', style: 'padding:14px 16px;' }, [
-        el('div', { style: 'display:flex; justify-content:space-between; align-items:center;' }, [
-          el('div', { style: 'font-weight:500; font-size:14px;' }, [fi.who]),
-          el('div', { style: 'font-family:var(--font-mono); font-size:10px; color:var(--stone);' }, [fi.when]),
-        ]),
-        el('div', { style: 'color:var(--ink-soft); font-size:13px; margin-top:4px;' }, [fi.what]),
-      ]);
-    }));
-    listPane.appendChild(feedBody);
-  } else {
-    // Standard List view
-    var list = el('div', { style: 'margin-top:8px;' }, filteredEntities.map(function (ent) {
-      var isSel = es.selectedEntityId === ent.id;
-      var fig = ent.image
-        ? el('div', { class: 'fig d-figure' }, [el('img', { src: ent.image, alt: ent.name, style: 'width:100%;height:100%;object-fit:cover;' })])
-        : el('div', { class: 'fig d-figure d-placeholder', 'data-label': ent.type.slice(0, 3).toUpperCase(), 'data-coord': '' }, []);
+    return el('div', {
+      class: 'explore-list-item' + (isSel ? ' selected' : ''),
+      onclick: function () {
+        es.selectedEntityId = ent.id;
+        if (es.perspective === 'list') {
+          location.hash = ent.href;
+        } else {
+          District.render();
+        }
+      },
+    }, [
+      fig,
+      el('div', {}, [
+        el('div', { class: 'name' }, [ent.name]),
+        el('div', { class: 'cat' }, [ent.category + ' · ' + ent.tag]),
+      ]),
+      el('a', { class: 'btn btn-ghost btn-sm', href: ent.href, style: 'font-size:11px; padding:4px 10px;' }, ['View']),
+    ]);
+  }));
 
-      return el('div', {
-        class: 'explore-list-item' + (isSel ? ' selected' : ''),
-        onclick: function () {
-          es.selectedEntityId = ent.id;
-          if (es.perspective === 'list') {
-            location.hash = ent.href;
-          } else {
-            District.render();
-          }
-        },
-      }, [
-        fig,
-        el('div', {}, [
-          el('div', { class: 'name' }, [ent.name]),
-          el('div', { class: 'cat' }, [ent.category + ' · ' + ent.tag]),
-        ]),
-        el('a', { class: 'btn btn-ghost btn-sm', href: ent.href, style: 'font-size:11px; padding:4px 10px;' }, ['View']),
-      ]);
-    }));
-
-    if (!filteredEntities.length) {
-      list = el('div', { style: 'padding:40px 4px; text-align:center; color:var(--stone);' }, ['Nothing found under this filter in ' + d.name + ' — try another category.']);
-    }
-    listPane.appendChild(list);
+  if (!filteredEntities.length) {
+    list = el('div', { style: 'padding:40px 4px; text-align:center; color:var(--stone);' }, ['Nothing found under this filter in ' + d.name + ' — try another category.']);
   }
+  listPane.appendChild(list);
 
-  // =========================================================================
-  // PERSPECTIVE 3: MAP PANE
-  // =========================================================================
+  // Map Pane
   var mapPane = el('div', { class: 'explore-map-pane' }, []);
   var geoEntities = filteredEntities.filter(function (e) { return e.type === 'business' || e.type === 'place' || e.type === 'event' || e.type === 'organization'; });
 
@@ -177,7 +160,6 @@ District.screens.explore = function (params) {
     District.render();
   }));
 
-  // Selected Entity Bottom Floating Card (on Map mode)
   var selected = filteredEntities.filter(function (p) { return p.id === es.selectedEntityId; })[0];
   if (selected && es.perspective === 'map') {
     var previewFig = selected.image
@@ -202,7 +184,6 @@ District.screens.explore = function (params) {
   return shell;
 };
 
-// Deterministic map pin coordinate computation
 function pinPos(id, i) {
   var seed = 0;
   for (var k = 0; k < id.length; k++) seed += id.charCodeAt(k);
@@ -222,11 +203,9 @@ function buildMultiEntityMap(entities, selectedId, onSelect) {
   var svg = sel('svg', { class: 'map-svg', viewBox: '0 0 620 520', preserveAspectRatio: 'xMidYMid slice' });
   svg.appendChild(sel('rect', { class: 'land', width: 620, height: 520 }));
 
-  // Grid lines
   [130, 260, 390].forEach(function (y) { svg.appendChild(sel('line', { class: 'grid-line', x1: 0, y1: y, x2: 620, y2: y })); });
   [155, 310, 465].forEach(function (x) { svg.appendChild(sel('line', { class: 'grid-line', x1: x, y1: 0, x2: x, y2: 520 })); });
 
-  // Stylized city/campus blocks
   var blockGroup = sel('g', { class: 'block' });
   [[200,60,70,50],[280,60,60,70],[350,70,80,60],[440,60,55,90],[510,80,90,70],
    [200,170,90,70],[300,170,70,90],[380,180,60,70],[450,180,70,80],
@@ -235,7 +214,6 @@ function buildMultiEntityMap(entities, selectedId, onSelect) {
   });
   svg.appendChild(blockGroup);
 
-  // Entities as pins
   entities.forEach(function (ent, i) {
     var pos = pinPos(ent.id, i);
     var pinClass = 'map-pin-btn ' + (ent.pinType || 'pin-business') + (ent.id === selectedId ? ' selected' : '');

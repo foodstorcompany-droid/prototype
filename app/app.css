@@ -552,3 +552,26 @@ a.settings-row:hover, .settings-row--btn:hover { background: var(--vellum); }
 .map-pin-btn.pin-event circle.pin-dot { fill: var(--signal); }
 .map-pin-btn.pin-org circle.pin-dot { fill: oklch(0.52 0.16 300); }
 
+/* --- Authority System Badges --- */
+.badge-official { background: oklch(0.93 0.05 150); color: oklch(0.40 0.14 150); border: 1px solid oklch(0.82 0.08 150); font-family: var(--font-mono); font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; }
+.badge-org { background: oklch(0.93 0.05 240); color: oklch(0.42 0.14 240); border: 1px solid oklch(0.82 0.08 240); font-family: var(--font-mono); font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; }
+.badge-resident { background: var(--vellum); color: var(--ink-soft); border: 1px solid var(--fog); font-family: var(--font-mono); font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; }
+.badge-business { background: var(--ember-soft); color: var(--ember-deep); border: 1px solid var(--ember-line); font-family: var(--font-mono); font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; }
+
+/* --- Requests Cards --- */
+.request-card { border: 1px solid var(--fog); border-radius: var(--r-lg); background: var(--paper); padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: border-color .16s, transform .16s; }
+.request-card:hover { border-color: var(--stone-soft); transform: translateY(-1px); }
+.request-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.request-cat { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--ember-deep); font-weight: 500; margin-bottom: 3px; }
+.request-title { font-family: var(--font-serif); font-size: 18px; margin: 0; }
+.request-stipend { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--signal); background: var(--signal-soft); padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.request-desc { color: var(--ink-soft); font-size: 13.5px; line-height: 1.5; margin: 2px 0 6px; }
+.request-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid var(--fog); padding-top: 12px; flex-wrap: wrap; }
+.request-meta { display: flex; gap: 10px; font-family: var(--font-mono); font-size: 10.5px; color: var(--stone); }
+
+/* --- Distance Radius Selector --- */
+.radius-selector { display: inline-flex; gap: 4px; background: var(--vellum); border: 1px solid var(--fog); border-radius: 999px; padding: 3px; }
+.chip-radius { border: none; background: transparent; padding: 4px 10px; font-family: var(--font-mono); font-size: 10.5px; color: var(--stone); border-radius: 999px; cursor: pointer; }
+.chip-radius.active { background: var(--ink); color: var(--paper); font-weight: 500; }
+
+

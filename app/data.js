@@ -845,6 +845,57 @@ District.data = {
   ],
 
   // =========================================================================
+  // 7b. HYPER-LOCAL DEMAND: REQUESTS (DEMAND MATCHING)
+  // =========================================================================
+  requests: [
+    {
+      id: 'req-1',
+      title: 'iPhone 13 Screen Repair Needed Today',
+      districtId: 'mellanby',
+      requesterId: 'person-tomiwa',
+      requesterName: 'Tomiwa Adisa',
+      category: 'Tech Repair',
+      urgency: 'Needed Today',
+      location: 'Block C, Mellanby Hall',
+      budget: '₦15,000 – ₦20,000',
+      description: 'Screen cracked after a fall. Need a reliable technician for OEM replacement today before 6 PM.',
+      responsesCount: 3,
+      status: 'Open',
+      createdDate: '10m ago',
+    },
+    {
+      id: 'req-2',
+      title: 'Graphic Designer Needed for Event Poster',
+      districtId: 'mellanby',
+      requesterId: 'person-segun-exec',
+      requesterName: 'Segun Adeleke',
+      category: 'Design',
+      urgency: 'Active Today',
+      location: 'Mellanby Quad',
+      budget: '₦8,000',
+      description: 'Need a promotional poster design for tomorrow’s Inter-Hall Football Match. High resolution ready for print and Instagram.',
+      responsesCount: 2,
+      status: 'Open',
+      createdDate: '45m ago',
+    },
+    {
+      id: 'req-3',
+      title: 'Urgent Thesis Formatting & Binding',
+      districtId: 'mellanby',
+      requesterId: 'person-samuel',
+      requesterName: 'Samuel Adeyemi',
+      category: 'Print & Media',
+      urgency: 'Next 24 hours',
+      location: 'SUB Annex',
+      budget: '₦5,000',
+      description: 'Final department submission draft requires standard hardcover binding and preliminary page re-numbering.',
+      responsesCount: 1,
+      status: 'Open',
+      createdDate: '2h ago',
+    },
+  ],
+
+  // =========================================================================
   // 8. CREATED ACTIVITIES: ANNOUNCEMENTS (WITH AUTHORITY JURISDICTION)
   // =========================================================================
   announcements: [
@@ -1099,43 +1150,55 @@ District.getPlaces = function (districtId) {
   return District.data.places.filter(function (p) { return p.districtId === did; });
 };
 
-District.getEvents = function (districtId) {
+District.getRequests = function (districtId) {
   var did = districtId || (District.state && District.state.districtId) || District.data.currentDistrictId;
-  return District.data.events.filter(function (e) { return e.districtId === did; });
+  return (District.data.requests || []).filter(function (r) { return r.districtId === did; });
 };
 
-District.getOpportunities = function (districtId) {
-  var did = districtId || (District.state && District.state.districtId) || District.data.currentDistrictId;
-  return District.data.opportunities.filter(function (o) { return o.districtId === did; });
+District.createRequest = function (reqObj) {
+  var newReq = {
+    id: 'req-' + Date.now().toString(36),
+    title: reqObj.title || 'New Request',
+    districtId: reqObj.districtId || District.getDistrict().id,
+    requesterId: District.data.user.handle,
+    requesterName: District.data.user.name,
+    category: reqObj.category || 'General',
+    urgency: reqObj.urgency || 'Active Today',
+    location: reqObj.location || 'Mellanby Hall',
+    budget: reqObj.budget || 'Open budget',
+    description: reqObj.description || '',
+    responsesCount: 0,
+    status: 'Open',
+    createdDate: 'Just now',
+  };
+  District.data.requests.unshift(newReq);
+  District.data.activity.unshift({
+    districtId: newReq.districtId,
+    who: District.data.user.name,
+    what: 'posted a new request: ' + newReq.title,
+    when: 'Just now',
+  });
+  District.toast('Request posted to ' + District.getDistrict().name + '!');
+  if (District.render) District.render();
+  return newReq;
 };
 
-District.getPeople = function (districtId) {
-  var did = districtId || (District.state && District.state.districtId) || District.data.currentDistrictId;
-  return District.data.people.filter(function (p) { return p.districtId === did; });
-};
-
-District.getAnnouncements = function (districtId) {
-  var did = districtId || (District.state && District.state.districtId) || District.data.currentDistrictId;
-  return District.data.announcements.filter(function (a) { return a.districtId === did; });
-};
-
-// District-aware Happening Now filter
-District.getHappeningNow = function (districtId) {
-  var did = districtId || (District.state && District.state.districtId) || District.data.currentDistrictId;
-  var items = District.data.happeningNow.filter(function (h) { return h.districtId === did; });
-  return items.length ? items : District.data.happeningNow.slice(0, 3);
-};
-
-// District-aware Rising filter
-District.getRising = function (districtId) {
-  var did = districtId || (District.state && District.state.districtId) || District.data.currentDistrictId;
-  var items = District.data.rising.filter(function (r) { return r.districtId === did; });
-  return items.length ? items : District.data.rising.slice(0, 2);
+District.respondToRequest = function (requestId, note) {
+  var req = (District.data.requests || []).filter(function (r) { return r.id === requestId; })[0];
+  if (req) {
+    req.responsesCount = (req.responsesCount || 0) + 1;
+    District.toast('Response sent for "' + req.title + '"!');
+    if (District.render) District.render();
+  }
 };
 
 // Universal Entity Lookup
 District.getEntity = function (id, type) {
   if (!id) return null;
+  if (type === 'request' || !type) {
+    var rq = (District.data.requests || []).filter(function (x) { return x.id === id; })[0];
+    if (rq) return { entity: rq, type: 'request' };
+  }
   if (type === 'business' || !type) {
     var b = District.data.businesses.filter(function (x) { return x.id === id; })[0];
     if (b) return { entity: b, type: 'business' };
@@ -1223,3 +1286,4 @@ District.applyOpportunity = function (opportunityId, note) {
     if (District.render) District.render();
   }
 };
+

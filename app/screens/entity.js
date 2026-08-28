@@ -55,7 +55,7 @@ function renderBusiness(b) {
   var header = el('div', { class: 'provider-id-row' }, [
     el('div', { class: 'provider-avatar' }, [b.avatarLabel || b.name.slice(0, 2).toUpperCase()]),
     el('div', { class: 'provider-id-name' }, [
-      el('div', { class: 'entity-badge' }, [icon('store', 'icon-sm'), 'Business · ' + (b.openStatus || 'Active')]),
+      el('div', { class: 'badge-business' }, [icon('check', 'icon-sm'), 'Verified Business · Mellanby']),
       el('h1', {}, [b.name]),
       el('div', { class: 'cat' }, [b.category, b.ownerName ? ' · Owned by ' + b.ownerName : '']),
     ]),
@@ -66,11 +66,15 @@ function renderBusiness(b) {
   var left = el('div', {}, []);
   left.appendChild(el('p', { class: 'provider-bio' }, [b.bio]));
 
-  // Signal & metrics
-  left.appendChild(el('div', { class: 'provider-metrics' }, [
-    metric('Rating', '★ ' + (b.rating ? b.rating.toFixed(1) : '5.0')),
-    metric('Visits / Week', b.signal ? String(b.signal.visitsThisWeek) : '100+'),
-    metric('Repeat Rate', b.signal ? b.signal.repeatRate : '92%'),
+  // Trust Spine Metrics
+  left.appendChild(el('div', { class: 'card', style: 'padding:16px; margin-bottom:24px; background:var(--vellum);' }, [
+    el('div', { class: 'd-meta', style: 'margin-bottom:8px; color:var(--ember-deep);' }, ['Local Trust Spine & Performance']),
+    el('div', { class: 'provider-metrics', style: 'margin:0; padding:0; border:none;' }, [
+      metric('Rating', '★ ' + (b.rating ? b.rating.toFixed(1) : '4.9')),
+      metric('Completed', b.completed ? String(b.completed) : '47'),
+      metric('Repeat Rate', b.signal ? b.signal.repeatRate : '94%'),
+      metric('Disputes', '0'),
+    ]),
   ]));
 
   // Services section

@@ -1,0 +1,273 @@
+/* ==========================================================================
+   THE DISTRICT — Design System
+   "Ink & Ember" · Modern Civic × Editorial × Premium Neutral
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Palette — Ink & Ember */
+  --ink:        oklch(0.18 0.008 60);
+  --ink-soft:   oklch(0.28 0.010 60);
+  --stone:      oklch(0.52 0.012 65);
+  --stone-soft: oklch(0.68 0.010 70);
+  --fog:        oklch(0.88 0.006 75);
+  --fog-soft:   oklch(0.93 0.005 75);
+  --vellum:     oklch(0.955 0.008 78);
+  --paper:      oklch(0.985 0.006 82);
+
+  --ember:      oklch(0.62 0.145 45);   /* primary — terracotta */
+  --ember-deep: oklch(0.48 0.135 42);
+  --ember-soft: oklch(0.94 0.045 55);
+  --ember-line: oklch(0.85 0.075 50);
+
+  --signal:     oklch(0.52 0.09 165);   /* verified */
+  --signal-soft: oklch(0.94 0.035 165);
+  --alert:      oklch(0.58 0.16 30);
+  --gold:       oklch(0.72 0.11 85);    /* status/founding */
+
+  /* Type */
+  --font-serif: 'Newsreader', 'Iowan Old Style', 'Georgia', serif;
+  --font-sans:  'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:  'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* Space */
+  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-xl: 24px; --r-2xl: 32px;
+  --shadow-1: 0 1px 2px rgba(30,20,10,.04), 0 1px 0 rgba(30,20,10,.02);
+  --shadow-2: 0 6px 24px -8px rgba(30,20,10,.12), 0 2px 6px -2px rgba(30,20,10,.06);
+  --shadow-3: 0 24px 60px -20px rgba(30,20,10,.24), 0 8px 20px -8px rgba(30,20,10,.10);
+}
+
+[data-theme="dark"] {
+  --ink:        oklch(0.96 0.006 80);
+  --ink-soft:   oklch(0.85 0.010 75);
+  --stone:      oklch(0.65 0.012 70);
+  --stone-soft: oklch(0.48 0.010 70);
+  --fog:        oklch(0.28 0.010 60);
+  --fog-soft:   oklch(0.22 0.010 60);
+  --vellum:     oklch(0.16 0.010 55);
+  --paper:      oklch(0.12 0.008 55);
+  --ember:      oklch(0.72 0.145 45);
+  --ember-deep: oklch(0.62 0.135 42);
+  --ember-soft: oklch(0.30 0.070 45);
+  --ember-line: oklch(0.42 0.100 45);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* Typography scale */
+.d-display  { font-family: var(--font-serif); font-weight: 400; letter-spacing: -0.025em; line-height: 0.98; }
+.d-headline { font-family: var(--font-serif); font-weight: 400; letter-spacing: -0.02em; line-height: 1.02; }
+.d-title    { font-family: var(--font-sans);  font-weight: 500; letter-spacing: -0.015em; line-height: 1.15; }
+.d-body     { font-family: var(--font-sans);  font-weight: 400; line-height: 1.55; }
+.d-meta     { font-family: var(--font-mono);  font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; color: var(--stone); }
+.d-coord    { font-family: var(--font-mono);  font-weight: 400; font-size: 10.5px; letter-spacing: 0.02em; color: var(--stone-soft); }
+.d-italic   { font-style: italic; }
+
+/* Editorial figures */
+.d-figure {
+  background: var(--vellum);
+  border: 1px solid var(--fog);
+  border-radius: var(--r-md);
+  position: relative;
+  overflow: hidden;
+}
+.d-figure img { width:100%; height:100%; object-fit: cover; display:block; }
+
+/* Placeholder tile with cartographic label */
+.d-placeholder {
+  background:
+    repeating-linear-gradient(135deg,
+      transparent 0 8px,
+      color-mix(in oklch, var(--ember-soft) 45%, transparent) 8px 9px);
+  background-color: var(--vellum);
+  color: var(--stone);
+  position: relative;
+  overflow: hidden;
+}
+.d-placeholder::before {
+  content: attr(data-label);
+  position: absolute;
+  inset: auto 10px 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stone);
+  z-index: 2;
+}
+.d-placeholder::after {
+  content: attr(data-coord);
+  position: absolute;
+  top: 8px; right: 10px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--stone-soft);
+  letter-spacing: 0.02em;
+}
+
+/* Corner registration marks — cartographic flourish */
+.d-corner-marks::before, .d-corner-marks::after,
+.d-corner-marks > .cm-tl::before, .d-corner-marks > .cm-tl::after {
+  content: ""; position: absolute; width: 10px; height: 10px;
+  border-color: var(--ink); border-style: solid; border-width: 0;
+  pointer-events: none;
+}
+.d-corner-marks { position: relative; }
+.d-corner-marks::before { top: 0; left: 0; border-top-width: 1px; border-left-width: 1px; }
+.d-corner-marks::after  { bottom: 0; right: 0; border-bottom-width: 1px; border-right-width: 1px; }
+
+/* Trust spine — four vertical marks that fill as verified */
+.d-trust-spine {
+  display: inline-flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 14px;
+  padding: 2px 4px;
+  vertical-align: middle;
+}
+.d-trust-spine i {
+  width: 3px; height: 100%;
+  background: var(--fog);
+  display: block;
+  border-radius: 1px;
+}
+.d-trust-spine i.on { background: var(--signal); }
+.d-trust-spine.warm i.on { background: var(--ember); }
+
+/* District ring — nested locality indicator */
+.d-ring {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+.d-ring b {
+  color: var(--ink);
+  font-weight: 500;
+}
+.d-ring .sep {
+  opacity: 0.4;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: transform .18s cubic-bezier(.2,.7,.3,1), background .18s, color .18s, border-color .18s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--ink); color: var(--paper); }
+.btn-primary:hover { background: var(--ember-deep); }
+.btn-ember { background: var(--ember); color: var(--paper); }
+.btn-ember:hover { background: var(--ember-deep); }
+.btn-ghost { background: transparent; color: var(--ink); border-color: var(--fog); }
+.btn-ghost:hover { border-color: var(--ink); }
+.btn-quiet { background: var(--vellum); color: var(--ink); }
+.btn-quiet:hover { background: var(--fog-soft); }
+.btn-sm { padding: 8px 14px; font-size: 13px; }
+.btn-lg { padding: 16px 28px; font-size: 15px; }
+
+/* Chip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--vellum);
+  border: 1px solid var(--fog);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.chip.ember { background: var(--ember-soft); color: var(--ember-deep); border-color: var(--ember-line); }
+
+/* Ember accent underline (editorial) */
+.ember-underline {
+  background: linear-gradient(transparent 60%, var(--ember-soft) 60%);
+  padding: 0 2px;
+}
+
+/* Rule / divider */
+.rule { height: 1px; background: var(--fog); border: 0; margin: 0; }
+.rule-dot { height: 1px; background-image: radial-gradient(var(--stone-soft) 1px, transparent 1px); background-size: 6px 1px; border: 0; margin: 0; }
+
+/* Cards */
+.card {
+  background: var(--paper);
+  border: 1px solid var(--fog);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: border-color .2s, transform .2s;
+}
+.card:hover { border-color: var(--stone-soft); }
+
+/* Verify dot */
+.verify-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--signal);
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+/* Marquee-style locality strip (cartographic marginalia) */
+.locality-strip {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 8px 20px;
+  border-top: 1px solid var(--fog);
+  border-bottom: 1px solid var(--fog);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--stone);
+  background: var(--paper);
+}
+.locality-strip .dot { width: 4px; height: 4px; background: var(--ember); border-radius: 50%; display: inline-block; }
+
+/* Utility */
+.container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+.container-wide { max-width: 1440px; margin: 0 auto; padding: 0 32px; }
+.container-tight { max-width: 960px; margin: 0 auto; padding: 0 32px; }
+.stack > * + * { margin-top: var(--gap, 12px); }
+.row { display: flex; gap: var(--gap, 12px); align-items: center; }
+.col { display: flex; flex-direction: column; gap: var(--gap, 12px); }
+.grow { flex: 1; }
+.sr-only { position: absolute; left: -9999px; }
+
+/* SVG icon defaults */
+.icon { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.icon-sm { width: 14px; height: 14px; }
+.icon-lg { width: 22px; height: 22px; }

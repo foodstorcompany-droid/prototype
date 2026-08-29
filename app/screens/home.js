@@ -1,5 +1,6 @@
-// HOME — "My District" Locality-First Interface
-// Structured around: THE DISTRICT · Mellanby · University of Ibadan
+// HOME — "The Living District"
+// Experiential Civic & Commercial Hub for Mellanby · University of Ibadan
+// Brand: People · Place · Purpose
 window.District = window.District || {};
 District.screens = District.screens || {};
 
@@ -14,184 +15,159 @@ District.screens.home = function () {
   var requests = District.getRequests(d.id);
   var businesses = District.getBusinesses(d.id);
 
+  // Solar local time greeting
+  var hour = new Date().getUTCHours() + (d.localTimeOffset || 1);
+  hour = ((hour % 24) + 24) % 24;
+  var greeting = hour < 5 ? 'Late night in' : hour < 12 ? 'Good morning,' : hour < 17 ? 'Good afternoon,' : 'Good evening,';
+
   var wrap = el('div', { class: 'home-shell' }, []);
 
   // =========================================================================
-  // 1. LOCALITY-FIRST HEADER: MY DISTRICT
+  // 1. BRAND HERO & LOCALITY PULSE
   // =========================================================================
-  var hero = el('div', { class: 'home-hero' }, [
+  var hero = el('div', { class: 'home-hero', style: 'position:relative; overflow:hidden;' }, [
     el('div', { class: 'eyebrow' }, [
       el('span', { class: 'bar' }, []),
+      icon('cartographicMark', 'icon-sm'),
       'THE DISTRICT · ' + d.name + ' · ' + (d.parentDistrict || 'University of Ibadan'),
     ]),
-    el('h1', {}, ['What's happening ', el('em', {}, ['around you']), '?']),
-    el('div', { class: 'sub' }, [
-      d.activeToday.toLocaleString() + ' residents active · ' + (d.businessesCount || d.providers) + ' verified providers · ' + d.eventsToday + ' events today.',
+    el('h1', { style: 'margin:8px 0 10px; font-family:var(--font-sans); font-weight:700;' }, [
+      greeting, ' ', el('em', { style: 'font-family:var(--font-serif); font-weight:600; color:var(--district-bronze);' }, [d.name]), '.',
+    ]),
+    el('div', { class: 'sub', style: 'max-width:580px; font-size:15px; line-height:1.5; color:var(--ink-soft);' }, [
+      'A living civic system connecting residents, local businesses, services, and opportunities in ' + d.name + '.',
+    ]),
+
+    // Quick Action Matrix
+    el('div', { class: 'home-search', style: 'margin-top:20px;' }, [
+      el('input', {
+        placeholder: 'Search ' + d.name + ' — services, phone repair, tailoring, events, places…',
+        onfocus: function () { District.navigate('#/search'); },
+        onkeydown: function (e) { if (e.key === 'Enter') District.navigate('#/search'); },
+      }, []),
+      el('button', {
+        class: 'btn btn-primary',
+        onclick: function () { District.navigate('#/search'); },
+      }, [icon('search', 'icon-sm'), 'Search']),
+    ]),
+
+    // Live Stats Bar
+    el('div', { style: 'display:flex; gap:18px; margin-top:18px; flex-wrap:wrap; font-family:var(--font-mono); font-size:11px; color:var(--stone); align-items:center;' }, [
+      el('span', { style: 'display:inline-flex; align-items:center; gap:6px;' }, [
+        el('span', { style: 'width:7px; height:7px; background:var(--signal); border-radius:50%; display:inline-block;' }, []),
+        d.activeToday.toLocaleString() + ' Active Residents',
+      ]),
+      el('span', {}, ['· ' + (d.businessesCount || d.providers) + ' Verified Providers']),
+      el('span', {}, ['· ' + d.eventsToday + ' Events Today']),
+      el('span', {}, ['· ' + requests.length + ' Open Requests']),
     ]),
   ]);
   wrap.appendChild(hero);
 
   // =========================================================================
-  // 2. TODAY IN MELLANBY (Structured Daily Digest)
+  // 2. LIVE ACTIVITY PULSE (Living Stream)
   // =========================================================================
-  var digestItems = [];
+  if (happening && happening.length) {
+    var pulseItems = happening.map(function (item) {
+      return el('a', { class: 'happening-item', href: '#/activity', style: 'text-decoration:none;' }, [
+        el('span', { class: 'happening-time' }, [item.time]),
+        el('span', { class: 'happening-body' }, [
+          el('b', {}, [item.entityName]),
+          item.text,
+        ]),
+        el('span', { class: 'happening-badge' }, [item.badge]),
+      ]);
+    });
 
+    wrap.appendChild(el('div', { class: 'home-section', style: 'margin-top:10px;' }, [
+      el('div', { class: 'home-section-head' }, [
+        el('h2', { style: 'display:flex; align-items:center; gap:8px;' }, [
+          el('span', { class: 'pulse-dot' }, []),
+          'Happening Right Now',
+        ]),
+        el('a', { href: '#/activity' }, ['Activity Feed →']),
+      ]),
+      el('div', { class: 'happening-stream' }, pulseItems),
+    ]));
+  }
+
+  // =========================================================================
+  // 3. OFFICIAL NOTICE (Institutional Seal & Authority)
+  // =========================================================================
   if (notices && notices.length) {
     var primaryNotice = notices[0];
-    digestItems.push({
-      type: '📢 Hall Announcement',
-      title: primaryNotice.title,
-      sub: primaryNotice.issuer + ' · ' + primaryNotice.createdDate,
-      href: '#/notice/' + primaryNotice.id,
-      badge: 'OFFICIAL',
-      badgeClass: 'badge-official',
-    });
-  }
-
-  if (businesses && businesses.length) {
-    digestItems.push({
-      type: '🔧 Trusted Providers',
-      title: businesses.length + ' providers available today',
-      sub: 'Tailoring, Hair & Beauty, Tech Repairs, Catering',
-      href: '#/explore/Businesses',
-      badge: 'VERIFIED BIZ',
-      badgeClass: 'badge-business',
-    });
-  }
-
-  if (events && events.length) {
-    var topEvent = events[0];
-    digestItems.push({
-      type: '⚽ Activity & Events',
-      title: topEvent.title,
-      sub: topEvent.date + ' · ' + topEvent.venue,
-      href: '#/event/' + topEvent.id,
-      badge: 'EVENT',
-      badgeClass: 'chip ember',
-    });
-  }
-
-  if (requests && requests.length) {
-    var topReq = requests[0];
-    digestItems.push({
-      type: '🙋 Open Request',
-      title: topReq.title,
-      sub: 'Budget: ' + topReq.budget + ' · Posted ' + topReq.createdDate,
-      href: '#/requests',
-      badge: 'DEMAND',
-      badgeClass: 'chip on',
-    });
-  }
-
-  if (opportunities && opportunities.length) {
-    var topOpp = opportunities[0];
-    digestItems.push({
-      type: '💼 New Opportunity',
-      title: topOpp.title,
-      sub: topOpp.postedByName + ' · ' + topOpp.compensation,
-      href: '#/opportunity/' + topOpp.id,
-      badge: 'GIG',
-      badgeClass: 'chip',
-    });
-  }
-
-  wrap.appendChild(el('div', { class: 'home-section', style: 'margin-top:20px;' }, [
-    el('div', { class: 'home-section-head' }, [
-      el('h2', {}, ['Today in ' + d.name]),
-      el('span', { style: 'font-family:var(--font-mono); font-size:10px; color:var(--stone); text-transform:uppercase;' }, ['Live Digest']),
-    ]),
-    el('div', { style: 'display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;' }, digestItems.map(function (item) {
-      return el('a', {
-        class: 'card',
-        href: item.href,
-        style: 'padding:14px 16px; text-decoration:none; color:inherit; display:flex; flex-direction:column; justify-content:space-between; gap:10px;',
-      }, [
-        el('div', {}, [
-          el('div', { style: 'display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;' }, [
-            el('span', { style: 'font-family:var(--font-mono); font-size:10px; text-transform:uppercase; color:var(--stone);' }, [item.type]),
-            el('span', { class: item.badgeClass, style: 'font-size:9.5px;' }, [item.badge]),
-          ]),
-          el('div', { style: 'font-weight:500; font-size:15px;' }, [item.title]),
-          el('div', { style: 'font-size:12px; color:var(--stone); margin-top:3px;' }, [item.sub]),
+    var noticeCard = el('div', { class: 'district-notice-card', style: 'margin-top:20px; border-left:4px solid var(--district-bronze);' }, [
+      el('div', { class: 'district-notice-head' }, [
+        el('div', { class: 'notice-seal' }, [
+          el('span', { class: 'seal-dot', style: 'background:var(--district-bronze);' }, []),
+          el('span', { class: 'badge-official', style: 'margin-right:6px;' }, ['OFFICIAL']),
+          primaryNotice.issuerType + ' · ' + primaryNotice.issuer,
         ]),
-        el('div', { style: 'font-family:var(--font-mono); font-size:10.5px; color:var(--ember-deep); font-weight:500; text-align:right;' }, ['View →']),
-      ]);
-    })),
-  ]));
+        el('div', { class: 'notice-time' }, [primaryNotice.createdDate]),
+      ]),
+      el('h3', { style: 'margin:8px 0;' }, [primaryNotice.title]),
+      el('p', { style: 'margin:0 0 10px; color:var(--ink-soft); line-height:1.5;' }, [
+        primaryNotice.body.length > 150 ? primaryNotice.body.slice(0, 150) + '…' : primaryNotice.body,
+      ]),
+      el('div', { style: 'display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;' }, [
+        el('div', { class: 'notice-meta' }, ['Jurisdiction: ' + primaryNotice.jurisdiction]),
+        el('a', { href: '#/notice/' + primaryNotice.id, class: 'btn btn-ghost btn-sm', style: 'font-size:11px;' }, ['Read Official Notice →']),
+      ]),
+    ]);
+    wrap.appendChild(noticeCard);
+  }
 
   // =========================================================================
-  // 3. NEED SOMETHING? (Dual Entrypoint: Search + Post Request)
+  // 4. DEMAND & REQUESTS BANNER ("Need Something in Mellanby?")
   // =========================================================================
-  wrap.appendChild(el('div', { class: 'home-section' }, [
-    el('div', { class: 'home-section-head' }, [
-      el('h2', {}, ['Need something?']),
-      el('a', { href: '#/requests' }, ['View Requests →']),
-    ]),
-    el('div', { class: 'card', style: 'padding:20px; background:var(--vellum);' }, [
-      el('div', { style: 'font-size:14.5px; color:var(--ink-soft); margin-bottom:14px;' }, ['Search for a service, product, person or place in ' + d.name + ' — or broadcast a custom request directly to local providers.']),
-      el('div', { style: 'display:flex; gap:10px; flex-wrap:wrap;' }, [
-        el('button', {
-          class: 'btn btn-primary grow',
-          style: 'flex:1; min-width:200px;',
-          onclick: function () { District.navigate('#/search'); },
-        }, [icon('search', 'icon-sm'), 'Search ' + d.name]),
-        el('button', {
-          class: 'btn btn-ember grow',
-          style: 'flex:1; min-width:200px;',
-          onclick: function () { District.openPostRequestModal(); },
-        }, [icon('plus', 'icon-sm'), 'Post a Request for Help']),
+  wrap.appendChild(el('div', { class: 'home-section', style: 'margin-top:24px;' }, [
+    el('div', { class: 'card', style: 'padding:22px; background:var(--vellum); border:1px solid var(--fog);' }, [
+      el('div', { style: 'display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;' }, [
+        el('div', { style: 'max-width:500px;' }, [
+          el('div', { class: 'd-meta', style: 'color:var(--district-bronze); margin-bottom:6px;' }, ['Hyper-Local Demand Engine']),
+          el('h3', { style: 'margin:0 0 6px; font-family:var(--font-sans); font-size:18px;' }, ['Need a service, repair, or artisan today?']),
+          el('p', { style: 'margin:0; font-size:13.5px; color:var(--ink-soft);' }, [
+            'Broadcast what you need to verified providers in ' + d.name + ' and receive instant proposals.',
+          ]),
+        ]),
+        el('div', { style: 'display:flex; gap:8px; flex-wrap:wrap;' }, [
+          el('button', {
+            class: 'btn btn-ember',
+            onclick: function () { District.openPostRequestModal(); },
+          }, [icon('plus', 'icon-sm'), 'Post a Request']),
+          el('a', {
+            class: 'btn btn-ghost',
+            href: '#/requests',
+          }, ['Browse Requests (' + requests.length + ')']),
+        ]),
       ]),
     ]),
   ]));
 
   // =========================================================================
-  // 4. DISCOVER THE DISTRICT (Pillar Matrix)
-  // =========================================================================
-  var gateways = [
-    { label: 'Services', filter: 'Services', icon: 'grid' },
-    { label: 'Products', filter: 'Products', icon: 'bag' },
-    { label: 'Businesses', filter: 'Businesses', icon: 'store' },
-    { label: 'Places', filter: 'Places', icon: 'pin' },
-    { label: 'Events', filter: 'Events', icon: 'calendar' },
-    { label: 'People', filter: 'People', icon: 'user' },
-  ];
-
-  wrap.appendChild(el('div', { class: 'home-section' }, [
-    el('div', { class: 'home-section-head' }, [
-      el('h2', {}, ['Discover ' + d.name]),
-      el('a', { href: '#/explore' }, ['Explore all →']),
-    ]),
-    el('div', { class: 'gateway-matrix' }, gateways.map(function (gw) {
-      return el('a', { class: 'gateway-pill', href: '#/explore/' + encodeURIComponent(gw.filter) }, [
-        icon(gw.icon, 'icon-sm'),
-        gw.label,
-      ]);
-    })),
-  ]));
-
-  // =========================================================================
-  // 5. PLACES IN MELLANBY
+  // 5. SPACES & PLACES IN MELLANBY (Experiential Photo Cards)
   // =========================================================================
   if (places && places.length) {
     var placeCards = places.map(function (pl) {
       var fig = pl.image
-        ? el('div', { class: 'd-figure', style: 'height:110px;' }, [
+        ? el('div', { class: 'd-figure', style: 'height:130px;' }, [
             el('img', { src: pl.image, alt: pl.name, style: 'width:100%;height:100%;object-fit:cover;' }),
           ])
-        : el('div', { class: 'd-placeholder', style: 'height:110px;', 'data-label': pl.type.toUpperCase(), 'data-coord': pl.coord || '' }, []);
+        : el('div', { class: 'd-placeholder', style: 'height:130px;', 'data-label': pl.type.toUpperCase(), 'data-coord': pl.coord || '' }, []);
 
       return el('a', { class: 'place-card', href: '#/place/' + pl.id }, [
         fig,
         el('div', { class: 'place-card-body' }, [
           el('div', {}, [
             el('div', { class: 'cat' }, [pl.type]),
-            el('div', { class: 'name' }, [pl.name]),
+            el('div', { class: 'name', style: 'font-weight:600;' }, [pl.name]),
           ]),
-          el('div', { style: 'margin-top:10px;' }, [
+          el('div', { style: 'margin-top:8px; display:flex; justify-content:space-between; align-items:center;' }, [
             el('div', { class: 'live-chip ' + (pl.liveStatus && pl.liveStatus.level || 'good') }, [
               el('span', { class: 'pulse-dot' }, []),
               pl.liveStatus ? pl.liveStatus.tag : 'Open',
             ]),
+            el('span', { style: 'font-family:var(--font-mono); font-size:10px; color:var(--stone);' }, [pl.coord ? pl.coord.split('·')[0].trim() : 'Mellanby']),
           ]),
         ]),
       ]);
@@ -199,46 +175,86 @@ District.screens.home = function () {
 
     wrap.appendChild(el('div', { class: 'home-section' }, [
       el('div', { class: 'home-section-head' }, [
-        el('h2', {}, ['Places in ' + d.name]),
-        el('a', { href: '#/explore/Places' }, ['All places →']),
+        el('h2', {}, ['Places & Spaces in ' + d.name]),
+        el('a', { href: '#/explore/Places' }, ['All Places (' + places.length + ') →']),
       ]),
       el('div', { class: 'hcard-scroll' }, placeCards),
     ]));
   }
 
   // =========================================================================
-  // 6. OPEN REQUESTS IN MELLANBY
+  // 6. TRUSTED LOCAL PROVIDERS & ARTISANS
   // =========================================================================
-  if (requests && requests.length) {
-    var reqCards = requests.slice(0, 2).map(function (rq) {
-      return el('div', { class: 'request-card' }, [
-        el('div', { class: 'request-head' }, [
-          el('div', {}, [
-            el('div', { class: 'request-cat' }, [rq.category + ' · ' + rq.urgency]),
-            el('h3', { class: 'request-title' }, [rq.title]),
+  if (businesses && businesses.length) {
+    var providerCards = businesses.map(function (b) {
+      return el('div', { class: 'card', style: 'padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:12px;' }, [
+        el('div', { style: 'display:flex; gap:12px; align-items:flex-start;' }, [
+          b.image
+            ? el('img', { src: b.image, alt: b.name, style: 'width:48px;height:48px;border-radius:var(--r-md);object-fit:cover;' })
+            : el('div', { class: 'provider-avatar', style: 'width:48px;height:48px;font-size:16px;' }, [b.avatarLabel || b.name.slice(0, 2).toUpperCase()]),
+          el('div', { style: 'flex:1;' }, [
+            el('div', { style: 'display:flex; justify-content:space-between; align-items:center;' }, [
+              el('span', { class: 'badge-business' }, ['VERIFIED BIZ']),
+              el('span', { style: 'font-family:var(--font-mono); font-size:11px; font-weight:600; color:var(--signal);' }, ['★ ' + (b.rating ? b.rating.toFixed(1) : '4.9')]),
+            ]),
+            el('div', { style: 'font-weight:600; font-size:15px; margin-top:2px;' }, [b.name]),
+            el('div', { style: 'font-size:12px; color:var(--stone);' }, [b.category + (b.ownerName ? ' · ' + b.ownerName : '')]),
           ]),
-          el('div', { class: 'request-stipend' }, [rq.budget]),
         ]),
-        el('p', { class: 'request-desc' }, [rq.description]),
-        el('div', { class: 'request-footer' }, [
-          el('div', { class: 'request-meta' }, [
-            el('span', {}, [icon('user', 'icon-sm'), 'Posted by ' + rq.requesterName]),
-            el('span', {}, ['· ' + rq.location]),
+        el('p', { style: 'font-size:13px; color:var(--ink-soft); margin:0; line-height:1.4;' }, [
+          b.bio && b.bio.length > 90 ? b.bio.slice(0, 90) + '…' : (b.bio || 'Local provider in ' + d.name)
+        ]),
+        el('div', { style: 'display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--fog); padding-top:10px;' }, [
+          el('span', { style: 'font-family:var(--font-mono); font-size:10px; color:var(--stone);' }, [
+            (b.completed || 47) + ' transactions · 98% completion',
           ]),
-          el('button', {
-            class: 'btn btn-primary btn-sm',
-            onclick: function () { District.openRespondRequestModal(rq); },
-          }, ['Offer Service (' + rq.responsesCount + ')']),
+          el('a', { class: 'btn btn-primary btn-sm', href: '#/business/' + b.id }, ['View Storefront']),
         ]),
       ]);
     });
 
     wrap.appendChild(el('div', { class: 'home-section' }, [
       el('div', { class: 'home-section-head' }, [
-        el('h2', {}, ['Active Requests']),
-        el('a', { href: '#/requests' }, ['View all (' + requests.length + ') →']),
+        el('h2', {}, ['Trusted Providers in ' + d.name]),
+        el('a', { href: '#/explore/Businesses' }, ['View All (' + businesses.length + ') →']),
       ]),
-      el('div', { style: 'display:flex; flex-direction:column; gap:10px;' }, reqCards),
+      el('div', { style: 'display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px;' }, providerCards),
+    ]));
+  }
+
+  // =========================================================================
+  // 7. COMMUNITY EVENTS & HAPPENINGS
+  // =========================================================================
+  if (events && events.length) {
+    var eventCards = events.map(function (ev) {
+      return el('div', { class: 'card', style: 'padding:16px; display:flex; justify-content:space-between; align-items:center; gap:14px;' }, [
+        el('div', { style: 'display:flex; gap:14px; align-items:center;' }, [
+          el('div', { style: 'background:var(--district-earth); color:var(--warm-white); padding:10px 14px; border-radius:var(--r-md); text-align:center; font-family:var(--font-mono);' }, [
+            el('div', { style: 'font-size:10px; text-transform:uppercase;' }, [ev.date.split(' ')[0] || 'TODAY']),
+            el('div', { style: 'font-size:18px; font-weight:700;' }, [ev.date.split(' ')[1] || '29']),
+          ]),
+          el('div', {}, [
+            el('span', { class: 'chip ember', style: 'font-size:10px; padding:3px 8px; margin-bottom:4px;' }, [ev.category]),
+            el('h4', { style: 'margin:2px 0; font-size:15px; font-weight:600;' }, [ev.title]),
+            el('div', { style: 'font-size:12px; color:var(--stone);' }, [ev.venue + ' · ' + ev.time]),
+          ]),
+        ]),
+        el('div', { style: 'display:flex; flex-direction:column; gap:6px; align-items:flex-end;' }, [
+          el('button', {
+            class: 'btn btn-sm ' + (ev.userRsvpd ? 'btn-ember' : 'btn-ghost'),
+            onclick: function () { District.toggleRSVP(ev.id); },
+          }, [ev.userRsvpd ? 'Attending ✓' : 'RSVP (' + ev.rsvpCount + ')']),
+          el('a', { href: '#/event/' + ev.id, style: 'font-family:var(--font-mono); font-size:10px; color:var(--district-bronze); text-decoration:none;' }, ['Details →']),
+        ]),
+      ]);
+    });
+
+    wrap.appendChild(el('div', { class: 'home-section' }, [
+      el('div', { class: 'home-section-head' }, [
+        el('h2', {}, ['Upcoming Events']),
+        el('a', { href: '#/explore/Events' }, ['Calendar →']),
+      ]),
+      el('div', { style: 'display:flex; flex-direction:column; gap:10px;' }, eventCards),
     ]));
   }
 

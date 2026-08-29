@@ -65,8 +65,14 @@ function renderChrome(route) {
 
   // Top header strip
   var top = el('div', { class: 'app-top-strip' }, [
-    el('div', { class: 'row', style: 'gap:8px;' }, [
-      el('a', { class: 'brand', href: '#/home', style: 'font-size:18px;' }, ['The District']),
+    el('div', { class: 'row', style: 'gap:10px;' }, [
+      el('a', { class: 'brand-lockup', href: '#/home' }, [
+        icon('cartographicMark', 'brand-mark'),
+        el('div', { class: 'brand-text' }, [
+          el('span', { class: 'brand-title' }, ['The District']),
+          el('span', { class: 'brand-tagline' }, ['People · Place · Purpose']),
+        ]),
+      ]),
     ]),
     el('nav', { class: 'app-nav-links' }, navLinks().map(function (l) {
       return el('a', { href: '#/' + l.route, class: route === l.route ? 'active' : '' }, [
